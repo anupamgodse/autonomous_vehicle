@@ -374,9 +374,9 @@ void main_task(intptr_t unused) {
     //mutex_light_ground.ceilpri = PRIORITY_LIGHT_GROUND_TASK;
     //mutex_light_ambiance.ceilpri = PRIORITY_LIGHT_AMBIANCE_TASK;
 
-    acre_mtx(&mutex_sonar);
-    acre_mtx(&mutex_light_ground);
-    acre_mtx(&mutex_light_ambiance);
+    mutex_sonar_id=acre_mtx(&mutex_sonar);
+    mutex_lg_id=acre_mtx(&mutex_light_ground);
+    mutex_la_id=acre_mtx(&mutex_light_ambiance);
 
     tslp_tsk(1000);
 
