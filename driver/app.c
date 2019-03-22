@@ -14,8 +14,12 @@
 //#include "../../kernel/mutex.h"
 #include "../../kernel/kernel_impl.h"
 
-const T_CMTX mutex_sonar, mutex_light_ground, mutex_light_ambiance;
+/*const T_CMTX mutex_sonar={TA_CEILING, (PRI)PRIORITY_SONAR_SENSOR_TASK}, 
+      mutex_light_ground={TA_CEILING, (PRI)PRIORITY_LIGHT_SENSOR_GROUND_TASK}, 
+      mutex_light_ambiance={TA_CEILING, (PRI)PRIORITY_LIGHT_SENSOR_AMBIANCE_TASK};
+
 ID mutex_sonar_id, mutex_lg_id, mutex_la_id;
+*/
 
 #define abs(x) (x<0?-x:x) 
 
@@ -80,9 +84,12 @@ void bluetooth() {
  */
 void sonar_sensor(intptr_t unused) {
     //get_utm(&start_od);
-    loc_mtx(mutex_sonar_id);
+    //int x=loc_mtx(mutex_sonar_id);
+    int x=loc_mtx(S_MTX);
+    printf("loc_return=%d\n", x);
     obstacle_distance = ev3_ultrasonic_sensor_get_distance(ultrasonic_sensor);
-    unl_mtx(mutex_sonar_id);
+    //unl_mtx(mutex_sonar_id);
+    unl_mtx(S_MTX);
     //get_utm(&end_od);
     //max_od = max_od<(end_od-start_od)?end_od-start_od:max_od;
 } 
@@ -95,9 +102,11 @@ void sonar_sensor(intptr_t unused) {
  */
 void light_sensor_ground(intptr_t unused) {
     //get_utm(&start_gv);
-    loc_mtx(mutex_lg_id);
+    //loc_mtx(mutex_lg_id);
+    loc_mtx(LG_MTX);
     ground_value = ev3_color_sensor_get_reflect(color_sensor_ground);
-    unl_mtx(mutex_lg_id);
+    //unl_mtx(mutex_lg_id);
+    unl_mtx(LG_MTX);
     //get_utm(&end_gv);
     //max_gv = max_gv<(end_gv-start_gv)?end_gv-start_gv:max_gv;
 }
@@ -108,9 +117,11 @@ void light_sensor_ground(intptr_t unused) {
  */
 void light_sensor_ambiance(intptr_t unused) {
     //get_utm(&start_av);
-    loc_mtx(mutex_la_id);
+    //loc_mtx(mutex_la_id);
+    loc_mtx(LA_MTX);
     ambiance_value = ev3_color_sensor_get_ambient(color_sensor_ambiance);
-    unl_mtx(mutex_la_id);
+    unl_mtx(LA_MTX);
+    //unl_mtx(mutex_la_id);
     //get_utm(&end_av);
     //max_av = max_av<(end_av-start_av)?end_av-start_av:max_av;
 }
@@ -128,15 +139,21 @@ void update_motor(intptr_t unused){
     //for recording critical section execution time
 
     //get_utm(&start_access);
-    loc_mtx(mutex_sonar_id);
+    //loc_mtx(mutex_sonar_id);
+    loc_mtx(S_MTX);
     temp_obstacle_distance = obstacle_distance;
-    unl_mtx(mutex_sonar_id);
-    loc_mtx(mutex_lg_id);
+    unl_mtx(S_MTX);
+    //unl_mtx(mutex_sonar_id);
+    //loc_mtx(mutex_lg_id);
+    loc_mtx(LG_MTX);
     temp_ground_value = ground_value;
-    unl_mtx(mutex_lg_id);
-    loc_mtx(mutex_la_id);
+    unl_mtx(LG_MTX);
+    //unl_mtx(mutex_lg_id);
+    //loc_mtx(mutex_la_id);
+    loc_mtx(LA_MTX);
     temp_ambiance_value = ambiance_value;
-    unl_mtx(mutex_la_id);
+    unl_mtx(LA_MTX);
+    //unl_mtx(mutex_la_id);
     //get_utm(&end_access);
 
     //max_access = max_access<(end_access-start_access)?end_access-start_access:max_access;
@@ -371,12 +388,20 @@ void main_task(intptr_t unused) {
     ev3_ultrasonic_sensor_get_distance(ultrasonic_sensor);
 
     //mutex_sonar.ceilpri = PRIORITY_SONAR_SENSOR_TASK;
-    //mutex_light_ground.ceilpri = PRIORITY_LIGHT_GROUND_TASK;
-    //mutex_light_ambiance.ceilpri = PRIORITY_LIGHT_AMBIANCE_TASK;
+    //mutex_light_ground.ceilpri = PRIORITY_LIGHT_SENSOR_GROUND_TASK;
+    //mutex_light_ambiance.ceilpri = PRIORITY_LIGHT_SENSOR_AMBIANCE_TASK;
+    
+    //mutex_sonar.mtxatr=TA_CEILING;
+    //mutex_light_ground.mtxatr=TA_CEILING;
+    //mutex_light_ambiance.mtxatr=TA_CEILING;
 
-    mutex_sonar_id=acre_mtx(&mutex_sonar);
+
+   /* mutex_sonar_id=acre_mtx(&mutex_sonar);
     mutex_lg_id=acre_mtx(&mutex_light_ground);
     mutex_la_id=acre_mtx(&mutex_light_ambiance);
+*/
+    //printf("s_id=%d\nlg_id=%d\nla_id=%d\n", mutex_sonar_id, mutex_lg_id, mutex_la_id);
+    //printf("s_atr=%d\nlg_atr=%d\nla_atr=%d\n", mutex_sonar.mtxatr, mutex_light_ground.mtxatr, mutex_light_ambiance.mtxatr);
 
     tslp_tsk(1000);
 
